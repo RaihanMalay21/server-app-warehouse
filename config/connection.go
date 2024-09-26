@@ -29,6 +29,7 @@ func DB_Connection() {
 	}
 
 	db.AutoMigrate(&models.Shelf{})
+	db.AutoMigrate(&models.Row{})
 	db.AutoMigrate(&models.Block{})
 	db.AutoMigrate(&models.Barang{})
 

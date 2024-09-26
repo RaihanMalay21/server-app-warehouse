@@ -6,20 +6,11 @@ import (
 	"gorm.io/gorm"
 )
 
-func DB_AddBarang(tx *gorm.DB, id_Block uint, barang models.Barang) error {
-	// Simpan barang terlebih 
+func DB_AddBarang(tx *gorm.DB, barang models.Barang) error {
+	
     if err := tx.Create(&barang).Error; err != nil {
         return err
     }
-
-	block := models.Block{
-		ID: id_Block,
-	}
-
-	// tambah kan barang ke tabel relations
-	if err := tx.Model(&block).Association("Barangs").Append(&barang); err != nil {
-		return err
-	}
 
 	return nil
 }

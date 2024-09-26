@@ -13,25 +13,33 @@ func GetShelfs() (*[]models.Shelf, error) {
 	// count number of row block and barang
 	for i := range shelves {
 		shelf := shelves[i]
+		
 
-		// menghitung count row
-		shelves[i].JumlahRows = uint32(len(shelf.Rows))
+		// menghitung capacity row
+		shelves[i].TotalRows = uint32(len(shelf.Rows))
 
-		// Menghitung jumlah blocks
-		blockCount := 0
+		// Menghitung total capacity blocks
+		total_block := 0
+		capacity_block := 0
 		for _, row := range shelf.Rows {
-			blockCount += len(row.Blocks)
+			total_block += len(row.Blocks)
+			capacity_block += int(row.CapacityBlock)
 		}
-		shelf.JumlahBlocks = uint32(blockCount)
+		shelves[i].CapacityBlocks = uint32(capacity_block)
+		shelves[i].TotalBlocks = uint32(total_block)
 
-		// Menghitung jumlah barangs
-		barangCount := 0
+		// Menghitung capacity barangs
+		capacity_barang := 0
+		total_barangs := 0
 		for _, row := range shelf.Rows {
 			for _, block := range row.Blocks {
-				barangCount += len(block.Barangs)
+				total_barangs += len(block.Barangs)
+				capacity_barang += int(block.CapacityBarang)
 			}
 		}
-		shelf.JumlahBarangs = uint32(barangCount)
+		shelves[i].CapacityBarangs = uint32(capacity_barang)
+		shelves[i].TotalBarangs = uint32(total_barangs)
+
 	}
 
 	return &shelves, nil

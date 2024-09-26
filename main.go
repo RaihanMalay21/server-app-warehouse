@@ -20,15 +20,19 @@ func main() {
 	
 	api.HandleFunc("/shelfs", shelf.Shelfs).Methods("GET") // berhasil
 	api.HandleFunc("/add/shelf", shelf.AddShelf).Methods("post") // berhasil
-	api.HandleFunc("/remove/shelf", shelf.RemoveShelf).Methods("POST") // berhasil
+	api.HandleFunc("/shelf/rows", row.GetRows).Methods("POST") // berhasil
 	api.HandleFunc("/shelf/row/add", row.AddRow).Methods("POST") // berhasil
-	api.HandleFunc("/shelf/row/remove", row.RemoveRow).Methods("POST") // berhasil
+	api.HandleFunc("/shelf/row/block", block.GetBlocks).Methods("POST")
 	api.HandleFunc("/shelf/row/block/add", block.AddBlock).Methods("POST")  //berhasil
-	api.HandleFunc("/shelf/row/block/remove", block.RemoveBlock).Methods("POST") // berhasil
+	api.HandleFunc("/shelf/row/block/barangs", barang.Barangs).Methods("POST")
 	api.HandleFunc("/shelf/row/block/barang/add", barang.AddBarang).Methods("POST") // berhasil
-	// api.HandleFunc("/shelf/row/block/barang/out", ).Methods("POST")
+	api.HandleFunc("/shelf/row/block/barang/out", barang.BarangKeluar).Methods("POST")
+	api.HandleFunc("/search/barang", barang.SearchBarang).Methods("POST")
+	
+	// api.HandleFunc("/remove/shelf", shelf.RemoveShelf).Methods("POST") // berhasil
+	// api.HandleFunc("/shelf/row/remove", row.RemoveRow).Methods("POST") // berhasil
+	// api.HandleFunc("/shelf/row/block/remove", block.RemoveBlock).Methods("POST") // berhasil
 	// api.HandleFunc("/shelf/row/block/barang/remove", ).Methods("POST")
-	// api.HandleFunc("/search/barang", ).Methods("POST")
 
 	fmt.Println("App running on port http://localhost:8080/warehouse")
 	log.Fatal(http.ListenAndServe(":8080", 

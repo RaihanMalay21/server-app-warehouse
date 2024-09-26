@@ -37,7 +37,7 @@ func AddBarang(w http.ResponseWriter, r *http.Request) {
 	ext := filepath.Ext(handler.Filename)
 	if ext == "" || (ext != ".jpg" && ext != ".png" && ext != ".gif") {
 		log.Println("Tipe Gambar harus jpg, png, dan gift")
-		msg := map[string]string{"message": "Tipe Gambar harus jpg, png, dan gift"}
+		msg := map[string]string{"messageImg": "Tipe Gambar harus jpg, png, dan gift"}
 		helper.Response(w, msg, http.StatusBadRequest)
 		return
 	}
@@ -48,7 +48,7 @@ func AddBarang(w http.ResponseWriter, r *http.Request) {
 	// authentikasi ukuran file 
 	if fileSize > 2000000 {
 		log.Println("error on line 61 function input barang : Ukuran FIle terlalu besar")
-		message := map[string]string{"message":"Ukuran Image Terlalu Besar, max 2MB"}
+		message := map[string]string{"messageImg":"Ukuran Image Terlalu Besar, max 2MB"}
 		helper.Response(w, message, http.StatusBadRequest)
 		return
 	}
@@ -60,9 +60,58 @@ func AddBarang(w http.ResponseWriter, r *http.Request) {
 	hasher := sha256.Sum256([]byte(nameOnly))
 	namaFileStringByte := hex.EncodeToString(hasher[:])
 
-	idBlock, err := strconv.ParseUint(r.FormValue("id_block"), 10, 32)
+	idBlockStr := r.FormValue("id_block")
+	if idBlockStr == "" {
+		fmt.Println("id_block is missing or empty")
+		return
+	}
+
+	idBlock, err := strconv.ParseUint(idBlockStr, 10, 32)
 	if err != nil {
 		fmt.Println("Error parsing string to uint:", err)
+		return
+	}
+
+	amountBarangStr := r.FormValue("amount_barang")
+	if amountBarangStr == "" {
+		fmt.Println("amount_barang is missing or empty")
+		return
+	}
+
+	amountBarang, err := strconv.ParseUint(amountBarangStr, 10, 32)
+	if err != nil {
+		fmt.Println("Error parsing string to uint:", err)
+		return
+	}
+
+	capacityBarangStr := r.FormValue("capacity_barang")
+	if capacityBarangStr == "" {
+		fmt.Println("capacity_barang is missing or empty")
+		return
+	}
+
+	capacity_barang, err:= strconv.ParseUint(capacityBarangStr, 10, 32)
+	if err != nil {
+		fmt.Println("Error parsing string to uint:", err)
+		return
+	}
+
+	currentCapacityStr := r.FormValue("current_capacity_barang")
+	if currentCapacityStr == "" {
+		fmt.Println("current_capacity_barang is missing or empty")
+		return
+	}
+
+	currentCapacity, err := strconv.ParseUint(currentCapacityStr, 10, 32)
+	if err != nil {
+		fmt.Println("Error parsing string to uint:", err)
+		return
+	}
+
+	if amountBarang > (capacity_barang - currentCapacity) {
+		amount := capacity_barang - currentCapacity
+		msg := map[string]string{"messageBarang": fmt.Sprintf("Kapasitas Tidak Cukup Penyimpanan Tersisa  %d Barang", amount)}
+		helper.Response(w, msg, http.StatusBadRequest)
 		return
 	}
 
@@ -72,7 +121,9 @@ func AddBarang(w http.ResponseWriter, r *http.Request) {
 		Material: r.FormValue("material"),
 		Diameter: r.FormValue("diameter"),
 		Fitur: r.FormValue("fitur"),
+		AmountBarang: float64(amountBarang),
 		Image: namaFileStringByte + ext,
+		BlockID: uint(idBlock),
 	}
 
 	validate := validator.New(validator.WithRequiredStructEnabled())
@@ -106,13 +157,13 @@ func AddBarang(w http.ResponseWriter, r *http.Request) {
 
 	tx := config.DB.Begin()
 
-	if err := config.DB_AddBarang(tx, uint(idBlock), barang); err != nil {
+	if err := config.DB_AddBarang(tx, barang); err != nil {
 		tx.Rollback()
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	
-	fileDir := helper.DestinationFolder("C:\\Users\\raiha\\Documents\\web-gudang\\server\\images", barang.Image)
+	fileDir := helper.DestinationFolder("C:\\Users\\raiha\\Documents\\web-gudang\\static\\src\\source\\images", barang.Image)
 
 	outFile, err := os.Create(fileDir)
 	if err != nil {

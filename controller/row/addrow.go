@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/RaihanMalay21/web-gudang/config"
 	"github.com/RaihanMalay21/web-gudang/helper"
@@ -13,7 +12,7 @@ import (
 )
 
 func AddRow(w http.ResponseWriter, r *http.Request) {
-	var field map[string]string
+	var field map[string]uint
 
 	JSON := json.NewDecoder(r.Body)
 	if err :=  JSON.Decode(&field); err != nil {
@@ -23,32 +22,16 @@ func AddRow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idShelf, err := strconv.ParseUint(field["id_shelf"], 10, 32)
-	if err != nil {
-		fmt.Println("Error parsing string to uint:", err)
-		return
-	}
+	idShelf := field["id_shelf"]
+	numberrow := field["number_row"]
 
-	numberrow, err := strconv.ParseUint(field["number_row"], 10, 32)
-	if err != nil {
-		fmt.Println("Error parsing string to uint:", err)
-		return
-	}
+	capacityblock := float64(field["capacity_block"])
+	capacityrow := float64(field["capacity_row"])
 
-	capacityblock, err := strconv.ParseFloat(field["capacity_block"], 64)
-	if err != nil {
-		fmt.Println("Error parsing string to float64:", err)
-		return
-	}
-
-	capacityrow, err := strconv.ParseFloat(field["capacity_row"], 64)
-	if err != nil {
-		fmt.Println("Error parsing string to float64:", err)
-		return
-	}
-
+	fmt.Println(numberrow)
+	fmt.Println(capacityrow)
 	if float64(numberrow) > capacityrow{
-		msg := map[string]string{"message": "Kouta Row Sudah habis"}
+		msg := map[string]string{"qoutaHabis": "Kouta Row Sudah habis"}
 		helper.Response(w, msg, http.StatusBadRequest)
 		return
 	}
@@ -57,9 +40,10 @@ func AddRow(w http.ResponseWriter, r *http.Request) {
 		// data yang dibutuhkan 
 		NumberRow: uint(numberrow),
 		CapacityBlock: capacityblock,
+		ShelfID: uint(idShelf),
 	}
 
-	if err := config.DB_AddRows(uint(idShelf), rows); err != nil {
+	if err := config.DB_AddRows(rows); err != nil {
 		fmt.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

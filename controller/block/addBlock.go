@@ -2,10 +2,8 @@ package block
 
 import(
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
 	"github.com/RaihanMalay21/web-gudang/config"
 	"github.com/RaihanMalay21/web-gudang/models"
@@ -13,7 +11,7 @@ import(
 )
 
 func AddBlock(w http.ResponseWriter, r *http.Request) {
-	var field map[string]string
+	var field map[string]uint
 
 	JSON := json.NewDecoder(r.Body)
 	if err :=  JSON.Decode(&field); err != nil {
@@ -23,32 +21,14 @@ func AddBlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	idRow, err := strconv.ParseUint(field["id_row"], 10, 32)
-	if err != nil {
-		fmt.Println("Error parsing string to uint:", err)
-		return
-	}
+	idRow  := field["id_row"]
+	nomorblock := field["nomor_block"]
 
-	nomorblock, err := strconv.ParseUint(field["nomor_block"], 10, 32)
-	if err != nil {
-		fmt.Println("Error parsing string to uint:", err)
-		return
-	}
-
-	capacitybarang, err := strconv.ParseFloat(field["capacity_barang"], 64)
-	if err != nil {
-		fmt.Println("Error parsing string to float64:", err)
-		return
-	}
-
-	capacityblock, err := strconv.ParseFloat(field["capacity_block"], 64)
-	if err != nil {
-		fmt.Println("Error parsing string to float64:", err)
-		return
-	}
+	capacitybarang := float64(field["capacity_barang"])
+	capacityblock := float64(field["capacity_block"])
 
 	if float64(nomorblock) > capacityblock {
-		msg := map[string]string{"message": "Kuota Block Sudah Habis"}
+		msg := map[string]string{"qoutaHabis": "Kouta Block Sudah Habis"}
 		helper.Response(w, msg, http.StatusBadRequest)
 		return
 	}
@@ -56,9 +36,10 @@ func AddBlock(w http.ResponseWriter, r *http.Request) {
 	Blocks := models.Block{
 		NomorBlock: uint(nomorblock),
 		CapacityBarang: capacitybarang,
+		RowID: uint(idRow),
 	}
 
-	if err := config.DB_AddBlock(Blocks, uint(idRow)); err != nil {
+	if err := config.DB_AddBlock(Blocks); err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
